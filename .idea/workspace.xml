@@ -1,7 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="8b064497-840e-4d86-a80e-f18497fdb210" name="Changes" comment="" />
+    <list default="true" id="8b064497-840e-4d86-a80e-f18497fdb210" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/nginx.conf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/assets/AssetFilters.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/devices/DeviceFilters.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/users/UserFilters.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/composables/useExcelExport.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/composables/useSweetAlert.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/views/devices/DevicesListView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dbnavigator.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dbnavigator.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/assets/AssetFormModal.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/assets/AssetFormModal.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/devices/DeviceFormModal.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/devices/DeviceFormModal.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/tickets/TicketForm.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/tickets/TicketForm.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/tickets/TicketFormModal.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/tickets/TicketFormModal.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/tickets/TicketsTable.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/tickets/TicketsTable.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/users/UserFormModal.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/users/UserFormModal.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/users/UsersTable.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/users/UsersTable.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/composables/Assets/useAssetsView.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/composables/Assets/useAssetsView.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/composables/Dashboard/useDashboardData.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/composables/Dashboard/useDashboardData.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/composables/Devices/useDevicesView.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/composables/Devices/useDevicesView.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/composables/Tickets/useAssetOptions.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/composables/Tickets/useAssetOptions.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/composables/Tickets/useTicketForm.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/composables/Tickets/useTicketForm.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/composables/Tickets/useTicketsView.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/composables/Tickets/useTicketsView.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/composables/Users/useUsersView.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/composables/Users/useUsersView.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/router/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/router/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/stores/useAssetStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/stores/useAssetStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/stores/useDeviceStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/stores/useDeviceStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/stores/useTicketStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/stores/useTicketStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/stores/useUserStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/stores/useUserStore.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/apiClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/apiClient.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/assetClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/assetClient.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/axiosClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/axiosClient.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/deviceClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/deviceClient.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/ticketClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/ticketClient.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views/Device/DevicesListView.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views/assets/AssetsListView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/assets/AssetsListView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views/tickets/TicketsListView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/tickets/TicketsListView.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/views/users/UsersListView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/users/UsersListView.vue" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -10,25 +55,26 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 3
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 3
+}</component>
   <component name="ProjectId" id="35TedyuUQUjWaLvOWUi3b5hxri8" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="8b064497-840e-4d86-a80e-f18497fdb210" name="Changes" comment="" />

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { getRoleColor } from '@/utils/userUtils';
 import type { User } from '@/types/User';
 import type { PropType } from 'vue';
 
@@ -16,13 +15,17 @@ defineProps({
     type: Boolean,
     default: false,
   },
-  isAdmin: {
-    type: Boolean,
-    default: false,
-  },
 });
 
-const emit = defineEmits(['edit-user', 'delete-user']);
+const emit = defineEmits(['edit', 'delete']); // <-- Evento delete añadido
+
+const getRoleColor = (role: string) => {
+  switch (role) {
+    case 'ADMIN': return 'red';
+    case 'TECHNICIAN': return 'blue';
+    default: return 'green';
+  }
+};
 </script>
 
 <template>
@@ -31,17 +34,25 @@ const emit = defineEmits(['edit-user', 'delete-user']);
     :items="users"
     :loading="isLoading"
     item-key="id"
-    class="elevation-1"
-    no-data-text="No hay usuarios registrados."
+    class="elevation-1 mt-4"
+    no-data-text="No se encontraron usuarios."
     loading-text="Cargando usuarios..."
   >
     <template v-slot:item.role="{ item }">
-      <v-chip :color="getRoleColor(item.role)" size="small">{{ item.role }}</v-chip>
+      <v-chip size="small" :color="getRoleColor(item.role)">
+        {{ item.role }}
+      </v-chip>
     </template>
+
     <template v-slot:item.actions="{ item }">
-      <div style="display: flex; gap: 8px;">
-        <v-btn v-if="isAdmin" icon size="small" color="secondary" @click="emit('edit-user', item.id)"><v-icon>mdi-pencil</v-icon></v-btn>
-        <v-btn v-if="isAdmin" icon size="small" color="red" @click="emit('delete-user', item.id, item.nombreCompleto)"><v-icon>mdi-delete</v-icon></v-btn>
+      <div class="d-flex justify-center">
+        <v-btn icon size="small" color="secondary" class="mr-2" @click="emit('edit', item.id)">
+          <v-icon>mdi-pencil</v-icon>
+        </v-btn>
+        <!-- BOTÓN DE ELIMINAR -->
+        <v-btn icon size="small" color="error" @click="emit('delete', item.id)">
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
       </div>
     </template>
   </v-data-table>

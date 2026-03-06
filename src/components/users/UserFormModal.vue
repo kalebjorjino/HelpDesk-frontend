@@ -1,52 +1,98 @@
 <script setup lang="ts">
-import UserForm from './UserForm.vue';
-import type { User, UserRole } from '@/types/User';
+import { ref, watch } from 'vue';
 import type { PropType } from 'vue';
+import type { User, UserRole } from '@/types/User';
 
-// The modal receives all the necessary data and state from the parent view
-defineProps({
-  title: {
-    type: String,
-    required: true,
-  },
+const props = defineProps({
+  title: { type: String, required: true },
   roleOptions: {
-    type: Array as PropType<UserRole[]>,
+    type: Array as PropType<{ title: string, value: UserRole | undefined }[]>,
     required: true,
   },
-  isSubmitting: {
-    type: Boolean,
-    default: false,
-  },
-  formError: {
-    type: String as PropType<string | null>,
-    default: null,
-  },
-  isEditMode: {
-    type: Boolean,
-    default: false,
-  },
+  isEditMode: { type: Boolean, default: false },
+  isSubmitting: { type: Boolean, default: false },
+  formError: { type: String as PropType<string | null>, default: null },
 });
 
-// Use defineModel for two-way binding on the dialog's visibility and the user data
 const dialog = defineModel<boolean>('dialog', { required: true });
 const userData = defineModel<Partial<User>>('userData', { required: true });
 
 const emit = defineEmits(['submit', 'cancel']);
+const form = ref<any>(null);
+
+const rules = {
+  required: (value: any) => !!value || 'Este campo es requerido.',
+  email: (value: string) => /.+@.+\..+/.test(value) || 'Debe ser un correo válido.',
+};
+
+const handleSubmit = async () => {
+  const { valid } = await form.value.validate();
+  if (valid) {
+    emit('submit');
+  }
+};
 
 </script>
 
 <template>
-  <v-dialog v-model="dialog" max-width="800" persistent>
+  <v-dialog v-model="dialog" max-width="600px" persistent>
     <v-card>
       <v-card-title class="text-h5 bg-primary text-white">{{ title }}</v-card-title>
       <v-card-text class="pt-4">
-        <v-form @submit.prevent="emit('submit')">
-          <!-- The reusable form component is placed here -->
-          <UserForm
-            v-model="userData"
-            :role-options="roleOptions"
-            :is-edit-mode="isEditMode"
-          />
+        <v-form ref="form" @submit.prevent="handleSubmit">
+          <v-text-field
+            v-model="userData.nombreCompleto"
+            label="Nombre Completo"
+            variant="outlined"
+            :rules="[rules.required]"
+            class="mb-3"
+          ></v-text-field>
+
+          <v-text-field
+            v-model="userData.username"
+            label="Nombre de Usuario"
+            variant="outlined"
+            :rules="[rules.required]"
+            class="mb-3"
+            :disabled="isEditMode"
+          ></v-text-field>
+
+          <v-text-field
+            v-model="userData.email"
+            label="Correo Electrónico"
+            variant="outlined"
+            :rules="[rules.required, rules.email]"
+            class="mb-3"
+          ></v-text-field>
+
+          <v-text-field
+            v-model="userData.codigoEmpleado"
+            label="Código de Empleado"
+            variant="outlined"
+            :rules="[rules.required]"
+            class="mb-3"
+          ></v-text-field>
+
+          <v-select
+            v-model="userData.role"
+            :items="roleOptions.filter(r => r.value !== undefined)"
+            label="Rol"
+            variant="outlined"
+            :rules="[rules.required]"
+            class="mb-3"
+            item-title="title"
+            item-value="value"
+          ></v-select>
+
+          <v-text-field
+            v-if="!isEditMode"
+            v-model="userData.password"
+            label="Contraseña"
+            type="password"
+            variant="outlined"
+            :rules="[rules.required]"
+            class="mb-3"
+          ></v-text-field>
 
           <v-alert v-if="formError" type="error" density="compact" class="mt-4">
             {{ formError }}
@@ -55,8 +101,10 @@ const emit = defineEmits(['submit', 'cancel']);
       </v-card-text>
       <v-card-actions class="pa-4 pt-0">
         <v-spacer></v-spacer>
-        <v-btn color="grey-darken-1" variant="text" @click="emit('cancel')" :disabled="isSubmitting">Cancelar</v-btn>
-        <v-btn color="primary" variant="flat" @click="emit('submit')" :loading="isSubmitting" :disabled="isSubmitting">Guardar Cambios</v-btn>
+        <v-btn color="grey-darken-1" variant="text" @click="emit('cancel')">Cancelar</v-btn>
+        <v-btn color="primary" variant="flat" @click="handleSubmit" :loading="isSubmitting">
+          Guardar
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

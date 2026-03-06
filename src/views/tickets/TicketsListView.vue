@@ -3,34 +3,59 @@ import { computed } from 'vue';
 import { useTicketsView } from '@/composables/Tickets/useTicketsView';
 import { useTicketForm } from '@/composables/Tickets/useTicketForm';
 import { useUserOptions } from '@/composables/Users/useUserOptions';
-import { useFilteredAssetOptions } from '@/composables/Tickets/useAssetOptions';
 import { useDeviceOptions } from '@/composables/Devices/useDeviceOptions';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useExcelExport } from '@/composables/useExcelExport'; // <-- Importar
 import TicketFilters from '@/components/tickets/TicketFilters.vue';
 import TicketsTable from '@/components/tickets/TicketsTable.vue';
 import TicketFormModal from '@/components/tickets/TicketFormModal.vue';
 
 const authStore = useAuthStore();
+const { exportToExcel } = useExcelExport(); // <-- Usar
 
-// --- Obtención de Datos y Lógica de la Vista ---
-const { tickets, headers, isLoading, fetchError, refreshTickets, filters, priorityOptions, statusOptions } = useTicketsView();
-const { dialog, isEditMode, isLocked, ticketData, isSubmitting, formError, openCreateForm, openEditForm, handleSubmit, handleCancel } = useTicketForm(refreshTickets);
+const { tickets, headers, isLoading, fetchError, refreshTickets, filters, priorityOptions, statusOptions, deleteTicket } = useTicketsView();
 
-// --- Opciones para los Selectores ---
+const {
+  dialog,
+  isEditMode,
+  isLocked,
+  ticketData,
+  isSubmitting,
+  formError,
+  openCreateForm,
+  openEditForm,
+  handleSubmit,
+  handleCancel,
+  filteredEquipos,
+  isLoadingFilteredEquipos
+} = useTicketForm(refreshTickets);
+
 const { clientUserOptions, agentUserOptions, isLoadingUsers } = useUserOptions();
-// Se inicializa con un valor reactivo, pero el valor real se obtendrá del useTicketForm
-const usuarioReportaIdRef = computed(() => ticketData.value.usuarioReportaId);
-const { assetSelectOptions, isLoadingAssets } = useFilteredAssetOptions(usuarioReportaIdRef);
 const { deviceSelectOptions, isLoadingDevices } = useDeviceOptions();
 
-// --- Propiedades Computadas para la UI (RESTAURADAS) ---
-
-// Define el título del modal dinámicamente
 const modalTitle = computed(() => {
   if (!isEditMode.value) return 'Crear Nuevo Ticket';
   if (isLocked.value) return `Detalles del Ticket #${ticketData.value.id}`;
   return `Editar Ticket #${ticketData.value.id}`;
 });
+
+// --- FUNCIÓN DE EXPORTACIÓN ---
+const handleExport = () => {
+  // Mapear los datos para que sean legibles en Excel
+  const dataToExport = tickets.value.map(t => ({
+    ID: t.id,
+    Asunto: t.asunto,
+    Prioridad: t.prioridad,
+    Estado: t.estado,
+    'Fecha Creación': new Date(t.fechaCreacion).toLocaleString(),
+    'Reportado Por': t.nombreUsuarioReporta,
+    'Técnico Asignado': t.nombreTecnicoAsignado,
+    'Equipo': t.detallesEquipo,
+    'Componente': t.detallesComponente
+  }));
+
+  exportToExcel(dataToExport, 'Reporte_Tickets');
+};
 
 </script>
 
@@ -39,7 +64,11 @@ const modalTitle = computed(() => {
     <v-card class="pa-4">
       <v-card-title class="d-flex justify-space-between align-center">
         <h1 class="text-h4">Gestión de Tickets</h1>
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreateForm">Nuevo Ticket</v-btn>
+        <div>
+          <!-- BOTÓN DE EXPORTAR -->
+          <v-btn color="success" prepend-icon="mdi-microsoft-excel" class="mr-2" @click="handleExport">Exportar</v-btn>
+          <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreateForm">Nuevo Ticket</v-btn>
+        </div>
       </v-card-title>
 
       <TicketFilters
@@ -61,6 +90,7 @@ const modalTitle = computed(() => {
         :tickets="tickets"
         :is-loading="isLoading"
         @view-details="openEditForm"
+        @delete="deleteTicket"
       />
     </v-card>
 
@@ -76,13 +106,13 @@ const modalTitle = computed(() => {
       :status-options="statusOptions"
       :client-user-options="clientUserOptions"
       :agent-user-options="agentUserOptions"
-      :asset-select-options="assetSelectOptions"
       :device-select-options="deviceSelectOptions"
       :is-loading-users="isLoadingUsers"
-      :is-loading-assets="isLoadingAssets"
       :is-loading-devices="isLoadingDevices"
       @submit="handleSubmit"
       @cancel="handleCancel"
+      :filtered-equipos="filteredEquipos"
+      :is-loading-filtered-equipos="isLoadingFilteredEquipos"
     />
   </v-container>
 </template>

@@ -1,31 +1,73 @@
-// src/composables/useDevicesView.ts
-import { onMounted } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useDeviceStore } from '@/stores/useDeviceStore';
+import { useSweetAlert } from '@/composables/useSweetAlert';
 
 export function useDevicesView() {
-    // 1. Obtener la instancia del Store de Pinia
     const deviceStore = useDeviceStore();
+    const { showSuccess, showError, confirmDelete } = useSweetAlert();
 
-    // 2. Extraer el estado con Reactividad
-    // storeToRefs es VITAL para desestructurar las propiedades reactivas del Store
-    // (devices, loading, error) sin perder su reactividad.
-    const { devices, loading, error } = storeToRefs(deviceStore);
+    const { devices: rawDevices, loading, error } = storeToRefs(deviceStore);
 
-    // 3. Lógica del Ciclo de Vida: Cargar datos al montar la vista
+    // --- FILTROS ---
+    const filters = ref({ search: '' });
+
+    const headers = [
+        { title: 'Nombre Componente', key: 'nombreComponente' },
+        { title: 'Marca', key: 'marca' },
+        { title: 'Modelo', key: 'modelo' },
+        { title: 'Serie', key: 'serie' },
+        { title: 'Código Patrimonial', key: 'codigoPatrimonial' },
+        { title: 'Especificaciones', key: 'especificaciones' },
+        { title: 'Acciones', key: 'actions', sortable: false, align: 'center' },
+    ];
+
+    const devices = computed(() => {
+        let processedDevices = rawDevices.value;
+
+        if (filters.value.search) {
+            const searchLower = filters.value.search.toLowerCase();
+            processedDevices = processedDevices.filter(device =>
+                device.nombreComponente?.toLowerCase().includes(searchLower) ||
+                device.marca?.toLowerCase().includes(searchLower) ||
+                device.modelo?.toLowerCase().includes(searchLower) ||
+                device.serie?.toLowerCase().includes(searchLower) ||
+                device.codigoPatrimonial?.toLowerCase().includes(searchLower)
+            );
+        }
+        return processedDevices;
+    });
+
+    const loadData = () => {
+        deviceStore.fetchDevices();
+    };
+
+    const deleteDevice = async (id: number) => {
+        const confirmed = await confirmDelete('¿Eliminar componente?', 'Esta acción eliminará el componente permanentemente.');
+        if (confirmed) {
+            try {
+                await deviceStore.deleteDevice(id);
+                showSuccess('Componente eliminado correctamente');
+            } catch (err) {
+                console.error('Error al eliminar el componente:', err);
+                showError('Error', 'No se pudo eliminar el componente.');
+            }
+        }
+    };
+
     onMounted(() => {
-        // Buena práctica: Solo cargar si la lista está vacía para evitar peticiones redundantes
-        if (devices.value.length === 0 && !loading.value) {
-            console.log('🚀 useDevicesView: Iniciando carga de componentes.');
+        if (rawDevices.value.length === 0 && !loading.value) {
             deviceStore.fetchDevices();
         }
     });
 
-    // 4. Devolver solo lo que el componente de vista necesita
     return {
-        devices,           // Lista de componentes (reactiva y tipada)
-        isLoading: loading, // Estado de carga (reactivo)
-        fetchError: error,   // Mensaje de error (reactivo)
-        refreshDevices: deviceStore.fetchDevices, // Función para forzar la recarga
+        devices,
+        headers,
+        isLoading: loading,
+        fetchError: error,
+        filters, // <-- Exportar filtros
+        refreshDevices: deviceStore.fetchDevices,
+        deleteDevice,
     };
 }

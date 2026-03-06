@@ -2,6 +2,9 @@
 import { getStatusColor } from '@/utils/ticketUtils';
 import type { Ticket } from '@/types/Ticket';
 import type { PropType } from 'vue';
+import { useAuthStore } from '@/stores/useAuthStore'; // <-- Importar AuthStore
+
+const authStore = useAuthStore(); // <-- Instanciar
 
 defineProps({
   headers: {
@@ -18,7 +21,7 @@ defineProps({
   },
 });
 
-const emit = defineEmits(['view-details']);
+const emit = defineEmits(['view-details', 'delete']);
 
 </script>
 
@@ -50,21 +53,33 @@ const emit = defineEmits(['view-details']);
     </template>
 
     <template v-slot:item.actions="{ item }">
-      <!-- Lógica condicional para mostrar el botón correcto -->
-      <v-tooltip :text="item.estado === 'RESUELTO' || item.estado === 'CERRADO' ? 'Ver Detalles' : 'Editar'">
-        <template v-slot:activator="{ props }">
-          <v-btn
-            v-bind="props"
-            icon
-            size="small"
-            :color="item.estado === 'RESUELTO' || item.estado === 'CERRADO' ? 'info' : 'secondary'"
-            @click="emit('view-details', item.id)"
-          >
-            <!-- Cambia el ícono según el estado -->
-            <v-icon>{{ item.estado === 'RESUELTO' || item.estado === 'CERRADO' ? 'mdi-eye' : 'mdi-pencil' }}</v-icon>
-          </v-btn>
-        </template>
-      </v-tooltip>
+      <div class="d-flex justify-center">
+        <v-tooltip :text="item.estado === 'RESUELTO' || item.estado === 'CERRADO' ? 'Ver Detalles' : 'Editar'">
+          <template v-slot:activator="{ props }">
+            <v-btn
+              v-bind="props"
+              icon
+              size="small"
+              :color="item.estado === 'RESUELTO' || item.estado === 'CERRADO' ? 'info' : 'secondary'"
+              class="mr-2"
+              @click="emit('view-details', item.id)"
+            >
+              <v-icon>{{ item.estado === 'RESUELTO' || item.estado === 'CERRADO' ? 'mdi-eye' : 'mdi-pencil' }}</v-icon>
+            </v-btn>
+          </template>
+        </v-tooltip>
+
+        <!-- CORRECCIÓN: Mostrar botón de eliminar SOLO si es ADMIN -->
+        <v-btn
+          v-if="authStore.isAdmin"
+          icon
+          size="small"
+          color="error"
+          @click="emit('delete', item.id)"
+        >
+          <v-icon>mdi-delete</v-icon>
+        </v-btn>
+      </div>
     </template>
   </v-data-table>
 </template>

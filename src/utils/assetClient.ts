@@ -3,7 +3,7 @@ import axios, { type AxiosInstance, type AxiosError } from 'axios';
 import router from '@/router';
 
 // URL del Microservicio de Patrimonio (Assets)
-const ASSET_API_URL = 'http://localhost:8080/api/'; // Añadimos /api/v1 si lo usas en el Controller
+const ASSET_API_URL = 'http://10.2.1.203:8080/api/'; // Añadimos /api/v1 si lo usas en el Controller
 
 const assetClient: AxiosInstance = axios.create({
   baseURL: ASSET_API_URL,

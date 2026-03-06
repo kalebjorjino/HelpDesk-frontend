@@ -5,14 +5,8 @@ import type { PropType } from 'vue';
 
 const props = defineProps({
   isEditMode: { type: Boolean, default: false },
-  userSelectOptions: {
-    type: Array as PropType<any[]>,
-    required: true,
-  },
-  deviceSelectOptions: {
-    type: Array as PropType<any[]>,
-    required: true,
-  },
+  userSelectOptions: { type: Array as PropType<any[]>, required: true },
+  deviceSelectOptions: { type: Array as PropType<any[]>, required: true },
   isLoadingUsers: { type: Boolean, default: false },
   isLoadingDevices: { type: Boolean, default: false },
 });
@@ -25,8 +19,16 @@ const emit = defineEmits(['success']);
 const assetStore = useAssetStore();
 const isSubmitting = ref(false);
 const formError = ref<string | null>(null);
+const form = ref<any>(null);
+
+const rules = {
+  required: (value: any) => !!value || 'Este campo es requerido.',
+};
 
 const handleSubmit = async () => {
+  const { valid } = await form.value.validate();
+  if (!valid) return;
+
   isSubmitting.value = true;
   formError.value = null;
   try {
@@ -48,7 +50,6 @@ watch(dialog, (newValue) => {
     formError.value = null;
   }
 });
-
 </script>
 
 <template>
@@ -56,11 +57,11 @@ watch(dialog, (newValue) => {
     <v-card>
       <v-card-title class="text-h5 bg-primary text-white">{{ isEditMode ? 'Editar Equipo' : 'Registrar Nuevo Equipo' }}</v-card-title>
       <v-card-text class="pt-4">
-        <v-form @submit.prevent="handleSubmit">
-          <v-text-field v-model="assetData.codigoPatrimonial" label="Código Patrimonial" variant="outlined" required class="mb-3"></v-text-field>
-          <v-text-field v-model="assetData.serie" label="Número de Serie" variant="outlined" class="mb-3"></v-text-field>
-          <v-text-field v-model="assetData.marca" label="Marca" variant="outlined" class="mb-3"></v-text-field>
-          <v-text-field v-model="assetData.modelo" label="Modelo" variant="outlined" class="mb-3"></v-text-field>
+        <v-form ref="form" @submit.prevent="handleSubmit">
+          <v-text-field v-model="assetData.codigoPatrimonial" label="Código Patrimonial" variant="outlined" :rules="[rules.required]" class="mb-3"></v-text-field>
+          <v-text-field v-model="assetData.serie" label="Número de Serie" variant="outlined" :rules="[rules.required]" class="mb-3"></v-text-field>
+          <v-text-field v-model="assetData.marca" label="Marca" variant="outlined" :rules="[rules.required]" class="mb-3"></v-text-field>
+          <v-text-field v-model="assetData.modelo" label="Modelo" variant="outlined" :rules="[rules.required]" class="mb-3"></v-text-field>
           <v-text-field v-model="assetData.ip" label="Dirección IP" variant="outlined" class="mb-3"></v-text-field>
           <v-text-field v-model="assetData.departamento" label="Departamento" variant="outlined" class="mb-3"></v-text-field>
           <v-text-field v-model="assetData.unidad" label="Unidad" variant="outlined" class="mb-3"></v-text-field>

@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  helpdesk-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Pasamos la variable como un argumento de construcción
+      args:
+        # CORRECCIÓN: Usar la IP real del servidor Ubuntu para que la API sea accesible desde otros equipos
+        VITE_API_BASE_URL: http://10.2.1.203:8080/api
+    image: helpdesk-frontend:latest
+    container_name: helpdesk-frontend
+    ports:
+      - "80:80" # El frontend estará disponible en http://10.2.1.203
+    restart: always

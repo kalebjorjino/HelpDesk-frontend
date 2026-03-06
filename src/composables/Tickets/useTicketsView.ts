@@ -3,24 +3,25 @@ import { storeToRefs } from 'pinia';
 import { useTicketStore, type TicketFilters } from '@/stores/useTicketStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUserOptions } from '@/composables/Users/useUserOptions';
-// La importación de useAssetOptions se elimina, ya que la lógica de carga de equipos ahora reside en TicketsListView.vue
 import { useDeviceOptions } from '@/composables/Devices/useDeviceOptions';
+import { useAssetOptions } from '@/composables/Tickets/useAssetOptions'; // Importar useAssetOptions
+import { useSweetAlert } from '@/composables/useSweetAlert'; // <-- Importar
 import type { EstadoTicket, PrioridadTicket } from '@/types/Ticket';
 
 export function useTicketsView() {
     const ticketStore = useTicketStore();
     const authStore = useAuthStore();
+    const { showSuccess, showError, confirmDelete } = useSweetAlert(); // <-- Usar
 
     const { allUserOptions, fetchUsers } = useUserOptions();
-    // La lógica de obtención de opciones de equipos se ha movido a TicketsListView.vue
-    const { deviceSelectOptions } = useDeviceOptions(); // fetchDevices se llama desde TicketsListView
+    const { deviceSelectOptions, fetchDevices } = useDeviceOptions();
+    const { assetSelectOptions, fetchAssets } = useAssetOptions(); // Usar fetchAssets
 
     const { tickets: rawTickets, loading, error } = storeToRefs(ticketStore);
     const { isAdmin, isTechnician } = storeToRefs(authStore);
 
-    const filters = ref<TicketFilters>({ /* ... */ });
+    const filters = ref<TicketFilters>({ });
 
-    // --- LÓGICA DE HEADERS RESTAURADA ---
     const headers = computed(() => {
         const base = [
             { title: 'Asunto', align: 'start', key: 'asunto' },
@@ -68,17 +69,30 @@ export function useTicketsView() {
         }
     };
 
+    // --- FUNCIÓN DE ELIMINAR MEJORADA ---
+    const deleteTicket = async (id: number) => {
+        const confirmed = await confirmDelete('¿Eliminar ticket?', 'Esta acción no se puede deshacer.');
+        if (confirmed) {
+            try {
+                await ticketStore.deleteTicket(id);
+                showSuccess('Ticket eliminado correctamente');
+            } catch (err) {
+                showError('Error', 'No se pudo eliminar el ticket.');
+            }
+        }
+    };
+
     onMounted(() => {
         fetchUsers();
-        // fetchAssets(); // Llamada eliminada, se gestiona en TicketsListView
-        // fetchDevices(); // Llamada eliminada, se gestiona en TicketsListView
+        fetchAssets(); // Cargar activos
+        fetchDevices();
         loadTicketsByRole();
     });
 
     const refreshTickets = () => {
         fetchUsers();
-        // fetchAssets(); // Llamada eliminada, se gestiona en TicketsListView
-        // fetchDevices(); // Llamada eliminada, se gestiona en TicketsListView
+        fetchAssets(); // Cargar activos
+        fetchDevices();
         loadTicketsByRole();
     };
 
@@ -89,16 +103,17 @@ export function useTicketsView() {
     }, { deep: true });
 
     const priorityOptions: PrioridadTicket[] = ['BAJA', 'MEDIA', 'ALTA', 'URGENTE'];
-    const statusOptions: EstadoTicket[] = ['PENDIENTE', 'EN_PROCESO', 'RESUELTO', 'CERRADO'];
+    const statusOptions: EstadoTicket[] = ['PENDIENTE', 'EN_PROGRESO', 'RESUELTO', 'CERRADO'];
 
     return {
         tickets,
-        headers, // <-- Ahora se devuelve la propiedad
+        headers,
         isLoading: loading,
         fetchError: error,
         filters,
         refreshTickets,
         priorityOptions,
         statusOptions,
+        deleteTicket,
     };
 }

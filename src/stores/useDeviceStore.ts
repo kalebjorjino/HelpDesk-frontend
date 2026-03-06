@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import apiClient from '@/utils/apiClient';
-import type { Device, DevicePayload } from '@/types/Device'; // Asume que tienes un DevicePayload
+import type { Device, DevicePayload } from '@/types/Device';
 import { extractErrorMessage } from '@/utils/errorUtils';
 
 const basePath = '/dispositivos';
@@ -46,7 +46,6 @@ export const useDeviceStore = defineStore('device', () => {
     }
   }
 
-  // --- ACCIÓN FALTANTE AÑADIDA ---
   async function updateDevice(id: number, payload: Partial<DevicePayload>): Promise<Device> {
     try {
       const response = await apiClient.put<Device>(`${basePath}/${id}`, payload);
@@ -60,9 +59,13 @@ export const useDeviceStore = defineStore('device', () => {
     }
   }
 
+  // --- ACCIÓN DE ELIMINAR CORREGIDA ---
   async function deleteDevice(id: number): Promise<void> {
     try {
+      // Llamada al endpoint DELETE /dispositivos/{id}
       await apiClient.delete(`${basePath}/${id}`);
+
+      // Actualizar el estado local eliminando el dispositivo
       devices.value = devices.value.filter(d => d.id !== id);
     } catch (err: any) {
       throw new Error(extractErrorMessage(err, `Error al eliminar el dispositivo ${id}.`));
@@ -77,7 +80,7 @@ export const useDeviceStore = defineStore('device', () => {
     fetchDevices,
     fetchDeviceById,
     createDevice,
-    updateDevice, // <-- Ahora la función existe y se exporta
-    deleteDevice,
+    updateDevice,
+    deleteDevice, // <-- Asegurarse de exportar la acción
   };
 });

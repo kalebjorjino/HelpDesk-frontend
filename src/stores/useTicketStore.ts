@@ -1,13 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import apiClient from '@/utils/apiClient';
-import type {
-  Ticket,
-  TicketPayload,
-  TicketUpdatePayload,
-  EstadoTicket,
-  PrioridadTicket,
-} from '@/types/Ticket';
+import type { Ticket, TicketPayload, TicketUpdatePayload, EstadoTicket, PrioridadTicket, EquipoResponseDTO } from '@/types/Ticket';
 import { extractErrorMessage } from '@/utils/errorUtils';
 
 export interface TicketFilters {
@@ -18,14 +12,10 @@ export interface TicketFilters {
 }
 
 export const useTicketStore = defineStore('ticket', () => {
-  // --- STATE ---
   const tickets = ref<Ticket[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
-  // --- ACTIONS ---
-
-  // 🔹 Obtiene todos los tickets con filtros (para administradores)
   async function fetchTickets(filters: TicketFilters = {}) {
     loading.value = true;
     error.value = null;
@@ -47,7 +37,6 @@ export const useTicketStore = defineStore('ticket', () => {
     }
   }
 
-  // 🔹 Obtiene los tickets del usuario logueado (para clientes)
   async function fetchMyTickets() {
     loading.value = true;
     error.value = null;
@@ -61,7 +50,6 @@ export const useTicketStore = defineStore('ticket', () => {
     }
   }
 
-  // 🔹 Obtiene los tickets asignados al técnico logueado
   async function fetchAssignedTickets() {
     loading.value = true;
     error.value = null;
@@ -75,19 +63,6 @@ export const useTicketStore = defineStore('ticket', () => {
     }
   }
 
-  // ✅ CORREGIDO: Obtiene el conteo de tickets cerrados en las últimas 24h (para dashboard)
-  async function fetchClosedTicketsLast24h(): Promise<number> {
-    try {
-      // El backend ya cuenta los tickets cerrados en las últimas 24 horas.
-      const response = await apiClient.get<number>('/tickets/estadisticas/cerrados-24h');
-      return response.data;
-    } catch (err: any) {
-      console.error('Error al obtener tickets cerrados de las últimas 24h:', err);
-      return 0; // Retorna 0 en caso de error para no bloquear el dashboard
-    }
-  }
-
-  // 🔹 Crea un nuevo ticket
   async function createTicket(payload: Omit<Ticket, 'id'>): Promise<Ticket> {
     try {
       const response = await apiClient.post<Ticket>('/tickets', payload);
@@ -97,7 +72,6 @@ export const useTicketStore = defineStore('ticket', () => {
     }
   }
 
-  // 🔹 Obtiene los detalles de un solo ticket por su ID
   async function fetchTicketById(id: number): Promise<Ticket> {
     try {
       const response = await apiClient.get<Ticket>(`/tickets/${id}`);
@@ -107,21 +81,39 @@ export const useTicketStore = defineStore('ticket', () => {
     }
   }
 
-  // 🔹 Actualiza un ticket existente
   async function updateTicket(id: number, payload: Partial<TicketUpdatePayload>): Promise<Ticket> {
     try {
-      const response = await apiClient.put<Ticket>(`/tickets/${id}`, payload);
+      await apiClient.put<Ticket>(`/tickets/${id}`, payload);
+      const updatedTicket = await fetchTicketById(id);
       const index = tickets.value.findIndex(t => t.id === id);
       if (index !== -1) {
-        tickets.value[index] = response.data;
+        tickets.value[index] = updatedTicket;
       }
-      return response.data;
+      return updatedTicket;
     } catch (err: any) {
       throw new Error(extractErrorMessage(err, `Error al actualizar el ticket ${id}.`));
     }
   }
 
-  // --- RETURN ---
+  async function fetchEquiposByUsuarioId(usuarioId: number): Promise<EquipoResponseDTO[]> {
+    try {
+      const response = await apiClient.get<EquipoResponseDTO[]>(`/equipos?usuarioId=${usuarioId}`);
+      return response.data;
+    } catch (err: any) {
+      throw new Error(extractErrorMessage(err, `Error al cargar equipos para el usuario ${usuarioId}.`));
+    }
+  }
+
+  // --- ACCIÓN DE ELIMINAR AÑADIDA ---
+  async function deleteTicket(id: number): Promise<void> {
+    try {
+      await apiClient.delete(`/tickets/${id}`);
+      tickets.value = tickets.value.filter(t => t.id !== id);
+    } catch (err: any) {
+      throw new Error(extractErrorMessage(err, `Error al eliminar el ticket ${id}.`));
+    }
+  }
+
   return {
     tickets,
     loading,
@@ -129,9 +121,10 @@ export const useTicketStore = defineStore('ticket', () => {
     fetchTickets,
     fetchMyTickets,
     fetchAssignedTickets,
-    fetchClosedTicketsLast24h,
     createTicket,
     fetchTicketById,
     updateTicket,
+    fetchEquiposByUsuarioId,
+    deleteTicket, // <-- EXPORTAR
   };
 });

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 1. Creamos la instancia base de Axios
 const axiosClient = axios.create({
-  baseURL: 'http://localhost:8080/api/', // URL base para el servicio de tickets/activos
+  baseURL: 'http://10.2.1.203:8080/api/', // URL base para el servicio de tickets/activos
   headers: {
     'Content-Type': 'application/json',
   },

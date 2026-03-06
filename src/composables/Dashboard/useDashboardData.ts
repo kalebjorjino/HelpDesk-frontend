@@ -1,90 +1,119 @@
 import { ref, onMounted, computed } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useTicketStore } from '@/stores/useTicketStore';
 import { useUserStore } from '@/stores/useUserStore';
-import type { Ticket } from '@/types/Ticket'; // Make sure this path is correct
+import { useAuthStore } from '@/stores/useAuthStore';
 
 export function useDashboardData() {
     const ticketStore = useTicketStore();
-    const userStore = useUserStore(); // Assuming you need user counts or info
+    const userStore = useUserStore();
+    const authStore = useAuthStore();
 
-    const isLoading = ref(true); // Tracks loading state
-    const error = ref<string | null>(null); // Stores potential errors
+    const { tickets } = storeToRefs(ticketStore);
+    const { users } = storeToRefs(userStore);
 
-    // --- Data Fetching ---
+    const isLoading = ref(true);
+    const error = ref<string | null>(null);
+
     const loadDashboardData = async () => {
         isLoading.value = true;
         error.value = null;
         try {
-            // Fetch tickets if the store is empty (or force refresh if needed)
-            // A dedicated backend endpoint for stats would be more efficient later
-            if (ticketStore.tickets.length === 0) {
-                console.log("Dashboard: Fetching tickets...");
-                await ticketStore.fetchTickets();
+            let fetchTicketPromise;
+            if (authStore.isAdmin) {
+                fetchTicketPromise = ticketStore.fetchTickets();
+            } else if (authStore.isTechnician) {
+                fetchTicketPromise = ticketStore.fetchAssignedTickets();
+            } else {
+                fetchTicketPromise = ticketStore.fetchMyTickets();
             }
 
-            // Fetch closed tickets count for the last 24h
-            closedLast24h.value = await ticketStore.fetchClosedTicketsLast24h();
-            // Fetch users if needed (e.g., for agent counts)
-             if (userStore.users.length === 0) {
-                console.log("Dashboard: Fetching users...");
-                await userStore.fetchUsers();
-             }
-             console.log("Dashboard: Data loading complete.");
+            // CORRECCIÓN: Eliminar la llamada a fetchClosedTicketsLast24h
+            await Promise.all([
+                fetchTicketPromise,
+                userStore.fetchUsers(),
+            ]);
 
         } catch (err: any) {
-            error.value = "Error al cargar datos del dashboard. Verifique los servicios.";
+            error.value = "Error al cargar datos del dashboard.";
             console.error("Dashboard data fetch error:", err);
         } finally {
             isLoading.value = false;
         }
     };
 
-    // Load data when the composable is first used in a component
     onMounted(loadDashboardData);
 
-    // --- Calculated Metrics (Computed Properties) ---
+    const openTicketsCount = computed(() =>
+        tickets.value.filter(t => t.estado === 'PENDIENTE' || t.estado === 'EN_PROGRESO').length
+    );
 
-    // Count tickets that are 'PENDIENTE' or 'EN_PROCESO'
-    const openTicketsCount = computed(() => {
-        return ticketStore.tickets.filter(
-            t => t.estado === 'PENDIENTE' || t.estado === 'EN_PROCESO'
-        ).length;
+    const highPriorityTicketsCount = computed(() =>
+        tickets.value.filter(
+            t => (t.prioridad === 'ALTA' || t.prioridad === 'URGENTE') && (t.estado === 'PENDIENTE' || t.estado === 'EN_PROGRESO')
+        ).length
+    );
+
+    const pendingTasks = computed(() => {
+        const tasks = [];
+        if (authStore.isAgentOrAdmin) {
+            const unassignedTickets = tickets.value.filter(
+                t => !t.tecnicoAsignadoId && (t.estado === 'PENDIENTE' || t.estado === 'EN_PROGRESO')
+            ).length;
+
+            if (unassignedTickets > 0) {
+                tasks.push({
+                    id: 1,
+                    text: `Asignar ${unassignedTickets} ticket(s) sin técnico`,
+                    icon: 'mdi-account-alert',
+                    action: { name: 'tickets-list' }
+                });
+            }
+        }
+        return tasks;
     });
 
-    // Count open tickets with high priority
-    const highPriorityTicketsCount = computed(() => {
-        return ticketStore.tickets.filter(
-            t => (t.prioridad === 'ALTA' || t.prioridad === 'URGENTE') &&
-                 (t.estado === 'PENDIENTE' || t.estado === 'EN_PROCESO')
-        ).length;
+    const ticketStatusChartData = computed(() => {
+        const statusCounts = tickets.value.reduce((acc, ticket) => {
+            acc[ticket.estado] = (acc[ticket.estado] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        const labels = ['PENDIENTE', 'EN_PROGRESO', 'RESUELTO', 'CERRADO'];
+        const data = labels.map(status => statusCounts[status] || 0);
+        const backgroundColors = ['#2196F3', '#FFC107', '#4CAF50', '#9E9E9E'];
+        return { labels, datasets: [{ backgroundColor: backgroundColors, data }] };
     });
 
-    // Placeholder: Average response time needs backend calculation
-    const averageResponseTime = ref('N/A'); // Use 'N/A' until calculated
+    // --- LÓGICA COMPUTADA PARA CERRADOS ---
+    const closedLast24h = computed(() => {
+        const now = new Date();
+        const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
 
-    // Closed tickets in last 24h
-    const closedLast24h = ref(0);
+        return tickets.value.filter(ticket => {
+            const isClosed = ticket.estado === 'CERRADO' || ticket.estado === 'RESUELTO';
+            if (!isClosed) return false;
 
-    // Placeholder: Pending tasks would likely come from specific backend logic or calculated rules
-    const pendingTasks = ref([
-        { id: 1, text: 'Asignar tickets sin agente', icon: 'mdi-account-alert' },
-        { id: 2, text: 'Revisar tickets antiguos (> 7 días)', icon: 'mdi-clock-alert' },
-    ]);
+            // Si el backend no envía la fecha, no se puede calcular.
+            if (!ticket.fechaActualizacion) return false;
 
-    // Example: Total number of users registered (if userStore is used)
-    const totalUsersCount = computed(() => userStore.users.length);
+            const updateDate = new Date(ticket.fechaActualizacion);
+            return updateDate > twentyFourHoursAgo;
+        }).length;
+    });
 
-    // --- Return values ---
-    // Expose reactive state and functions to the component
+    const averageResponseTime = ref('N/A');
+    const totalUsersCount = computed(() => users.value.length);
+
     return {
         isLoading,
         error,
         openTicketsCount,
         highPriorityTicketsCount,
-        averageResponseTime, // Placeholder
-        closedLast24h,       // Placeholder
-        pendingTasks,      // Placeholder
-        totalUsersCount,     // Example
-        refreshDashboard: loadDashboardData, // Function to manually reload data
+        averageResponseTime,
+        closedLast24h, // <-- Ahora es reactivo y calculado
+        pendingTasks,
+        ticketStatusChartData,
+        totalUsersCount,
+        refreshDashboard: loadDashboardData,
     };
 }

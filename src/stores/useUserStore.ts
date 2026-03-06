@@ -1,96 +1,89 @@
 import { defineStore } from 'pinia';
-import apiClient from '@/utils/apiClient'; // <-- CORRECCIÓN: Importar el cliente único
-import type { User, UserPayload } from '@/types/User';
+import { ref } from 'vue';
+import apiClient from '@/utils/apiClient';
+import type { User, UserPayload, UserRole } from '@/types/User';
 import { extractErrorMessage } from '@/utils/errorUtils';
-
-interface UserState {
-    users: User[];
-    loading: boolean;
-    error: string | null;
-}
-
-const basePath = '/usuarios'; // La baseURL ya contiene /api
 
 export interface UserFilters {
     search?: string;
-    role?: string;
+    role?: UserRole;
 }
 
-export const useUserStore = defineStore('user', {
-    state: (): UserState => ({
-        users: [],
-        loading: false,
-        error: null,
-    }),
+export const useUserStore = defineStore('user', () => {
+    const users = ref<User[]>([]);
+    const loading = ref(false);
+    const error = ref<string | null>(null);
 
-    actions: {
-        async fetchUsers(filters: UserFilters = {}) {
-            this.loading = true;
-            this.error = null;
-            try {
-                const params = new URLSearchParams(
-                    Object.entries(filters)
-                        .filter(([, value]) => value != null && value !== '')
-                        .reduce((acc, [key, value]) => ({ ...acc, [key]: String(value) }), {})
-                ).toString();
+    async function fetchUsers(filters: UserFilters = {}) {
+        loading.value = true;
+        error.value = null;
+        try {
+            const params = new URLSearchParams();
+            if (filters.search) params.append('search', filters.search);
+            if (filters.role) params.append('role', filters.role);
 
-                const url = `${basePath}${params ? '?' + params : ''}`;
-                const response = await apiClient.get<User[]>(url); // <-- CORRECCIÓN: Usar apiClient
-                this.users = response.data;
-            } catch (err: any) {
-                this.error = extractErrorMessage(err, 'Error al cargar usuarios.');
-            } finally {
-                this.loading = false;
-            }
-        },
+            const queryString = params.toString();
+            const url = `/usuarios${queryString ? '?' + queryString : ''}`;
 
-        async createUser(payload: UserPayload): Promise<User> {
-            try {
-                const response = await apiClient.post<User>(basePath, payload); // <-- CORRECCIÓN: Usar apiClient
-                this.users.push(response.data);
-                return response.data;
-            } catch (err: any) {
-                const errorMessage = extractErrorMessage(err, 'Fallo al crear el usuario.');
-                this.error = errorMessage;
-                throw new Error(errorMessage);
-            }
-        },
-
-        async fetchUserById(id: number): Promise<User> {
-            try {
-                const response = await apiClient.get<User>(`${basePath}/${id}`); // <-- CORRECCIÓN: Usar apiClient
-                return response.data;
-            } catch (err: any) {
-                const errorMessage = extractErrorMessage(err, `Error al obtener el usuario ${id}.`);
-                this.error = errorMessage;
-                throw new Error(errorMessage);
-            }
-        },
-
-        async updateUser(id: number, payload: UserPayload): Promise<User> {
-            try {
-                const response = await apiClient.put<User>(`${basePath}/${id}`, payload); // <-- CORRECCIÓN: Usar apiClient
-                const index = this.users.findIndex(u => u.id === id);
-                if (index !== -1) {
-                    this.users[index] = response.data;
-                }
-                return response.data;
-            } catch (err: any) {
-                const errorMessage = extractErrorMessage(err, `Error al actualizar el usuario ${id}.`);
-                this.error = errorMessage;
-                throw new Error(errorMessage);
-            }
-        },
-
-        async deleteUser(id: number): Promise<void> {
-            try {
-                await apiClient.delete(`${basePath}/${id}`); // <-- CORRECCIÓN: Usar apiClient
-                this.users = this.users.filter(u => u.id !== id);
-            } catch (err: any) {
-                const errorMessage = extractErrorMessage(err, `Error al eliminar el usuario ${id}.`);
-                this.error = errorMessage;
-                throw new Error(errorMessage);
-            }
+            const response = await apiClient.get<User[]>(url);
+            users.value = response.data;
+        } catch (err: any) {
+            error.value = extractErrorMessage(err, 'Error al cargar usuarios.');
+        } finally {
+            loading.value = false;
         }
     }
+
+    async function fetchUserById(id: number): Promise<User> {
+        try {
+            const response = await apiClient.get<User>(`/usuarios/${id}`);
+            return response.data;
+        } catch (err: any) {
+            throw new Error(extractErrorMessage(err, `Error al obtener el usuario ${id}.`));
+        }
+    }
+
+    async function createUser(payload: UserPayload): Promise<User> {
+        try {
+            const response = await apiClient.post<User>('/auth/register', payload);
+            users.value.push(response.data);
+            return response.data;
+        } catch (err: any) {
+            throw new Error(extractErrorMessage(err, 'Fallo al crear el usuario.'));
+        }
+    }
+
+    async function updateUser(id: number, payload: Partial<UserPayload>): Promise<User> {
+        try {
+            const response = await apiClient.put<User>(`/usuarios/${id}`, payload);
+            const index = users.value.findIndex(u => u.id === id);
+            if (index !== -1) {
+                users.value[index] = response.data;
+            }
+            return response.data;
+        } catch (err: any) {
+            throw new Error(extractErrorMessage(err, `Error al actualizar el usuario ${id}.`));
+        }
+    }
+
+    // --- ACCIÓN DE ELIMINAR AÑADIDA ---
+    async function deleteUser(id: number): Promise<void> {
+        try {
+            await apiClient.delete(`/usuarios/${id}`);
+            users.value = users.value.filter(u => u.id !== id);
+        } catch (err: any) {
+            throw new Error(extractErrorMessage(err, `Error al eliminar el usuario ${id}.`));
+        }
+    }
+
+    return {
+        users,
+        loading,
+        error,
+        fetchUsers,
+        fetchUserById,
+        createUser,
+        updateUser,
+        deleteUser, // <-- EXPORTAR
+    };
 });

@@ -3,9 +3,12 @@ import { ref } from 'vue';
 import { useAssetsView } from '@/composables/Assets/useAssetsView';
 import { useUserOptions } from '@/composables/Users/useUserOptions';
 import { useDeviceOptions } from '@/composables/Devices/useDeviceOptions';
+import { useExcelExport } from '@/composables/useExcelExport'; // <-- Importar
 import AssetFormModal from '@/components/assets/AssetFormModal.vue';
+import AssetFilters from '@/components/assets/AssetFilters.vue';
 
-const { assets, headers, loading, error, loadData } = useAssetsView();
+const { assets, headers, loading, error, loadData, deleteAsset, filters } = useAssetsView();
+const { exportToExcel } = useExcelExport(); // <-- Usar
 
 const { allUserOptions, isLoadingUsers } = useUserOptions();
 const { deviceSelectOptions, isLoadingDevices } = useDeviceOptions();
@@ -28,7 +31,25 @@ const openEditForm = (asset: any) => {
 
 const onFormSuccess = () => {
   dialog.value = false;
-  loadData(); // Refrescar la lista de activos
+  loadData();
+};
+
+// --- FUNCIÓN DE EXPORTACIÓN ---
+const handleExport = () => {
+  const dataToExport = assets.value.map(a => ({
+    'Cód. Patrimonial': a.codigoPatrimonial,
+    Marca: a.marca,
+    Modelo: a.modelo,
+    Serie: a.serie,
+    IP: a.ip,
+    Departamento: a.departamento,
+    Unidad: a.unidad,
+    Estado: a.estado,
+    'Usuario Asignado': a.nombreUsuarioAsignado,
+    'Componente Asignado': a.nombreDispositivoAsignado
+  }));
+
+  exportToExcel(dataToExport, 'Reporte_Patrimonio');
 };
 
 </script>
@@ -38,14 +59,19 @@ const onFormSuccess = () => {
     <v-card class="pa-4">
       <v-card-title class="d-flex justify-space-between align-center">
         <h1 class="text-h4">Gestión de Patrimonio</h1>
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreateForm">Registrar Equipo</v-btn>
+        <div>
+          <!-- BOTÓN DE EXPORTAR -->
+          <v-btn color="success" prepend-icon="mdi-microsoft-excel" class="mr-2" @click="handleExport">Exportar</v-btn>
+          <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreateForm">Registrar Equipo</v-btn>
+        </div>
       </v-card-title>
+
+      <AssetFilters v-model:filters="filters" />
 
       <v-alert v-if="error" type="error" closable class="my-4">
         {{ error }}
       </v-alert>
 
-      <!-- TABLA DE DATOS RESTAURADA -->
       <v-data-table
         :headers="headers"
         :items="assets"
@@ -56,9 +82,14 @@ const onFormSuccess = () => {
         loading-text="Cargando equipos..."
       >
         <template v-slot:item.actions="{ item }">
-          <v-btn icon size="small" color="secondary" @click="openEditForm(item)">
-            <v-icon>mdi-pencil</v-icon>
-          </v-btn>
+          <div class="d-flex justify-center">
+            <v-btn icon size="small" color="secondary" class="mr-2" @click="openEditForm(item)">
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn icon size="small" color="error" @click="deleteAsset(item.id)">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </div>
         </template>
       </v-data-table>
     </v-card>

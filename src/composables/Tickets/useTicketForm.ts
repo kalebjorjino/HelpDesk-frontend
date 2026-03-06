@@ -1,32 +1,58 @@
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useTicketStore } from '@/stores/useTicketStore';
-import { useAssetStore } from '@/stores/useAssetStore';
-import { useDeviceStore } from '@/stores/useDeviceStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import type { Ticket, TicketUpdatePayload, EstadoTicket } from '@/types/Ticket';
 
 export function useTicketForm(onSuccess?: () => void) {
   const ticketStore = useTicketStore();
-  const assetStore = useAssetStore();
-  const deviceStore = useDeviceStore();
+  const authStore = useAuthStore();
 
   const dialog = ref(false);
   const isEditMode = ref(false);
-  const ticketData = ref<Partial<Ticket & { tecnicoAsignadoId?: number | null }>>({});
+  const ticketData = ref<Partial<Ticket & { tecnicoAsignadoId?: number | null, equipoAfectadoId?: number | null }>>({});
   const isSubmitting = ref(false);
   const formError = ref<string | null>(null);
   const originalStatus = ref<EstadoTicket | null>(null);
 
-  // CORRECCIÓN: Bloqueo solo si el estado original es CERRADO
+  // --- NUEVAS VARIABLES REACTIVAS (Inicializadas correctamente) ---
+  const filteredEquipos = ref<any[]>([]); // <-- Inicializado como array vacío
+  const isLoadingFilteredEquipos = ref(false);
+
   const isLocked = computed(() =>
-    isEditMode.value && (originalStatus.value === 'CERRADO')
+    isEditMode.value && (originalStatus.value === 'RESUELTO' || originalStatus.value === 'CERRADO')
   );
+
+  const fetchFilteredEquipos = async (usuarioId: number | undefined | null) => {
+    filteredEquipos.value = [];
+    if (!usuarioId) return;
+
+    isLoadingFilteredEquipos.value = true;
+    try {
+      const response = await ticketStore.fetchEquiposByUsuarioId(usuarioId);
+      filteredEquipos.value = response.map(eq => ({
+        title: `${eq.marca} ${eq.modelo} (${eq.codigoPatrimonial})`,
+        value: eq.id
+      }));
+    } catch (error) {
+      console.error('Error fetching filtered equipos:', error);
+    } finally {
+      isLoadingFilteredEquipos.value = false;
+    }
+  };
 
   const openCreateForm = () => {
     isEditMode.value = false;
     originalStatus.value = null;
-    ticketData.value = { prioridad: 'MEDIA' };
     formError.value = null;
     dialog.value = true;
+    filteredEquipos.value = [];
+
+    if (authStore.isClient) {
+      ticketData.value = { prioridad: 'MEDIA', usuarioReportaId: authStore.userId };
+      fetchFilteredEquipos(authStore.userId);
+    } else {
+      ticketData.value = { prioridad: 'MEDIA' };
+    }
   };
 
   const openEditForm = async (ticketId: number) => {
@@ -34,21 +60,13 @@ export function useTicketForm(onSuccess?: () => void) {
     formError.value = null;
     try {
       const ticket = await ticketStore.fetchTicketById(ticketId);
-
-      if (ticket.equipoAfectadoId && !ticket.detallesEquipo) {
-        const assetDetails = await assetStore.fetchAssetById(ticket.equipoAfectadoId);
-        ticket.detallesEquipo = assetDetails;
-      }
-
-      if (ticket.componenteId && !ticket.detallesComponente) {
-        const deviceDetails = await deviceStore.fetchDeviceById(ticket.componenteId);
-        ticket.detallesComponente = deviceDetails;
-      }
-
       if (ticket) {
         ticketData.value = { ...ticket };
         originalStatus.value = ticket.estado;
         dialog.value = true;
+        if (ticket.usuarioReportaId) {
+          await fetchFilteredEquipos(ticket.usuarioReportaId);
+        }
       } else {
         formError.value = `Ticket with ID ${ticketId} not found`;
       }
@@ -63,13 +81,10 @@ export function useTicketForm(onSuccess?: () => void) {
   };
 
   const handleSubmit = async () => {
-    // ELIMINADO: Se quitó la validación de isLocked.value aquí, ya que el backend la maneja.
-
     isSubmitting.value = true;
     formError.value = null;
     try {
       if (isEditMode.value) {
-        // CORRECCIÓN: Se incluye el campo diagnostico en el payload
         const payload: Partial<TicketUpdatePayload> = {
           asunto: ticketData.value.asunto,
           descripcion: ticketData.value.descripcion,
@@ -78,7 +93,7 @@ export function useTicketForm(onSuccess?: () => void) {
           tecnicoAsignadoId: ticketData.value.tecnicoAsignadoId,
           equipoAfectadoId: ticketData.value.equipoAfectadoId,
           componenteId: ticketData.value.componenteId,
-          diagnostico: ticketData.value.diagnostico, // <-- AÑADIDO
+          diagnosticoTecnico: ticketData.value.diagnosticoTecnico,
         };
         await ticketStore.updateTicket(ticketData.value.id!, payload);
       } else {
@@ -93,6 +108,13 @@ export function useTicketForm(onSuccess?: () => void) {
     }
   };
 
+  watch(() => ticketData.value.usuarioReportaId, (newVal, oldVal) => {
+    if (newVal !== oldVal) {
+      fetchFilteredEquipos(newVal);
+      ticketData.value.equipoAfectadoId = null;
+    }
+  });
+
   return {
     dialog,
     isEditMode,
@@ -104,5 +126,7 @@ export function useTicketForm(onSuccess?: () => void) {
     openEditForm,
     handleSubmit,
     handleCancel,
+    filteredEquipos, // <-- EXPORTAR CORRECTAMENTE
+    isLoadingFilteredEquipos, // <-- EXPORTAR CORRECTAMENTE
   };
 }

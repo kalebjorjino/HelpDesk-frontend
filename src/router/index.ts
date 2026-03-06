@@ -19,7 +19,7 @@ import AssetsListView from '../views/assets/AssetsListView.vue';
 import AssetDetailsView from '../views/assets/AssetDetailsView.vue';
 
 // Vistas de Dispositivos (Devices)
-import DevicesListView from '../views/Device/DevicesListView.vue';
+import DevicesListView from '../views/devices/DevicesListView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

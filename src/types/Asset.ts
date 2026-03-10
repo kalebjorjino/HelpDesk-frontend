@@ -7,12 +7,14 @@ export interface Asset {
   serie: string;
   marca: string;
   modelo: string;
+  tipoEquipo?: string;
   ip: string;
   departamento: string;
   unidad: string;
   estado: EstadoEquipo;
   usuarioAsignadoId: number | null;
   deviceAsignadoId: number | null; // <-- Nombre corregido
+  status?: EstadoEquipo; // Alias para compatibilidad
 }
 
 // Payload para crear o actualizar un activo
@@ -21,6 +23,7 @@ export interface AssetPayload {
   serie: string;
   marca: string;
   modelo: string;
+  tipoEquipo?: string;
   ip: string;
   departamento: string;
   unidad: string;

@@ -93,7 +93,7 @@ export function useTicketForm(onSuccess?: () => void) {
           tecnicoAsignadoId: ticketData.value.tecnicoAsignadoId,
           equipoAfectadoId: ticketData.value.equipoAfectadoId,
           componenteId: ticketData.value.componenteId,
-          diagnosticoTecnico: ticketData.value.diagnosticoTecnico,
+          diagnostico: ticketData.value.diagnostico,
         };
         await ticketStore.updateTicket(ticketData.value.id!, payload);
       } else {

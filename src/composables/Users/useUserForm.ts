@@ -24,7 +24,9 @@ export function useUserForm(onSuccess?: () => void) {
     try {
       const user = await userStore.fetchUserById(userId); // Assumes store has this action
       if (user) {
-        userData.value = { ...user }; // Populate form with existing data
+        // NO incluir el password hasheado del servidor en el formulario
+        const { password, ...userWithoutPassword } = user;
+        userData.value = { ...userWithoutPassword };
         dialog.value = true;
       } else {
         formError.value = `No se pudo encontrar el usuario con ID ${userId}`;
@@ -47,12 +49,17 @@ export function useUserForm(onSuccess?: () => void) {
 
     try {
       if (isEditMode.value) {
-        // Update existing user
-        const payload = { ...userData.value };
-        if (!payload.password || payload.password.trim() === '') {
-          delete payload.password; // Don't send empty password
+        // Update existing user - Extract id from userData
+        const userId = userData.value.id!;
+        const { id, password, ...payloadWithoutIdAndPassword } = userData.value as any;
+        const payload = { ...payloadWithoutIdAndPassword } as any;
+        
+        // Only include password if user provided a new one (not empty)
+        if (password && password.trim() !== '') {
+          payload.password = password;
         }
-        await userStore.updateUser(payload.id!, payload);
+        
+        await userStore.updateUser(userId, payload);
       } else {
         // Create new user
         await userStore.createUser(userData.value as User);

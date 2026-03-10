@@ -49,12 +49,17 @@ const handleSubmit = async () => {
           ></v-text-field>
 
           <v-text-field
-            v-model="userData.username"
-            label="Nombre de Usuario"
+            v-model="userData.codigoEmpleado"
+            label="Código de Empleado"
             variant="outlined"
-            :rules="[rules.required]"
             class="mb-3"
-            :disabled="isEditMode"
+          ></v-text-field>
+
+          <v-text-field
+            v-model="userData.dni"
+            label="DNI"
+            variant="outlined"
+            class="mb-3"
           ></v-text-field>
 
           <v-text-field
@@ -62,14 +67,6 @@ const handleSubmit = async () => {
             label="Correo Electrónico"
             variant="outlined"
             :rules="[rules.required, rules.email]"
-            class="mb-3"
-          ></v-text-field>
-
-          <v-text-field
-            v-model="userData.codigoEmpleado"
-            label="Código de Empleado"
-            variant="outlined"
-            :rules="[rules.required]"
             class="mb-3"
           ></v-text-field>
 
@@ -85,6 +82,34 @@ const handleSubmit = async () => {
           ></v-select>
 
           <v-text-field
+            v-model="userData.cargo"
+            label="Cargo"
+            variant="outlined"
+            class="mb-3"
+          ></v-text-field>
+
+          <v-text-field
+            v-model="userData.departamento"
+            label="Departamento"
+            variant="outlined"
+            class="mb-3"
+          ></v-text-field>
+
+          <v-text-field
+            v-model="userData.unidad"
+            label="Unidad"
+            variant="outlined"
+            class="mb-3"
+          ></v-text-field>
+
+          <v-text-field
+            v-model="userData.area"
+            label="Área"
+            variant="outlined"
+            class="mb-3"
+          ></v-text-field>
+
+          <v-text-field
             v-if="!isEditMode"
             v-model="userData.password"
             label="Contraseña"
@@ -92,6 +117,18 @@ const handleSubmit = async () => {
             variant="outlined"
             :rules="[rules.required]"
             class="mb-3"
+          ></v-text-field>
+
+          <v-text-field
+            v-if="isEditMode"
+            v-model="userData.password"
+            label="Nueva Contraseña"
+            type="password"
+            variant="outlined"
+            class="mb-3"
+            hint="Dejar en blanco para no cambiar la contraseña"
+            persistent-hint
+            clearable
           ></v-text-field>
 
           <v-alert v-if="formError" type="error" density="compact" class="mt-4">

@@ -3,7 +3,7 @@ import axios, { type AxiosInstance, type AxiosError } from 'axios';
 import router from '@/router';
 
 // URL del Microservicio de Componentes
-const DEVICE_API_URL = 'http://10.2.1.203:8080/api/';
+const DEVICE_API_URL = import.meta.env.VITE_API_BASE_URL || '/api/';
 
 const deviceClient: AxiosInstance = axios.create({
   baseURL: DEVICE_API_URL,

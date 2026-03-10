@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 1. Instancia ÚNICA de Axios para toda la aplicación
 const apiClient = axios.create({
-  baseURL: 'http://10.2.1.203:8080/api', // URL base de tu API
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api', // URL base de tu API
   headers: {
     'Content-Type': 'application/json',
   },

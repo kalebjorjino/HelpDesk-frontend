@@ -45,12 +45,12 @@ export function useDashboardData() {
     onMounted(loadDashboardData);
 
     const openTicketsCount = computed(() =>
-        tickets.value.filter(t => t.estado === 'PENDIENTE' || t.estado === 'EN_PROGRESO').length
+        tickets.value.filter(t => t.estado === 'PENDIENTE' || t.estado === 'EN_PROCESO').length
     );
 
     const highPriorityTicketsCount = computed(() =>
         tickets.value.filter(
-            t => (t.prioridad === 'ALTA' || t.prioridad === 'URGENTE') && (t.estado === 'PENDIENTE' || t.estado === 'EN_PROGRESO')
+            t => (t.prioridad === 'ALTA' || t.prioridad === 'URGENTE') && (t.estado === 'PENDIENTE' || t.estado === 'EN_PROCESO')
         ).length
     );
 
@@ -58,7 +58,7 @@ export function useDashboardData() {
         const tasks = [];
         if (authStore.isAgentOrAdmin) {
             const unassignedTickets = tickets.value.filter(
-                t => !t.tecnicoAsignadoId && (t.estado === 'PENDIENTE' || t.estado === 'EN_PROGRESO')
+                t => !t.tecnicoAsignadoId && (t.estado === 'PENDIENTE' || t.estado === 'EN_PROCESO')
             ).length;
 
             if (unassignedTickets > 0) {
@@ -78,7 +78,7 @@ export function useDashboardData() {
             acc[ticket.estado] = (acc[ticket.estado] || 0) + 1;
             return acc;
         }, {} as Record<string, number>);
-        const labels = ['PENDIENTE', 'EN_PROGRESO', 'RESUELTO', 'CERRADO'];
+        const labels = ['PENDIENTE', 'EN_PROCESO', 'RESUELTO', 'CERRADO'];
         const data = labels.map(status => statusCounts[status] || 0);
         const backgroundColors = ['#2196F3', '#FFC107', '#4CAF50', '#9E9E9E'];
         return { labels, datasets: [{ backgroundColor: backgroundColors, data }] };

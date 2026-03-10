@@ -31,9 +31,9 @@ const emit = defineEmits(['edit-asset', 'view-asset', 'delete-asset']);
     no-data-text="No hay equipos registrados."
     loading-text="Cargando inventario..."
   >
-    <template v-slot:item.status="{ item }">
-      <v-chip :color="getStatusColor(item.status)" dark size="small">
-        {{ item.status }}
+    <template v-slot:item.estado="{ item }">
+      <v-chip :color="getStatusColor(item.estado)" dark size="small">
+        {{ item.estado }}
       </v-chip>
     </template>
 

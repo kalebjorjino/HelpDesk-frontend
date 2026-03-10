@@ -3,30 +3,31 @@ export type UserRole = 'USER' | 'TECHNICIAN' | 'ADMIN';
 
 export interface User {
   id: number;
-  codigoEmpleado: string; // Coincide con el campo Java
-  nombreCompleto: string; // Coincide con el campo Java
-  dni: string;
+  codigoEmpleado?: string;
+  nombreCompleto: string;
+  dni?: string;
   email: string;
+  password?: string;
   role: UserRole;
-  cargo: string;
-  departamento: string;
-  unidad: string;
-  area: string;
-  // Nota: Hemos quitado campos no existentes en tu dominio, como email y role.
-  // Si los necesitas, deben ser añadidos a tu entidad Java primero.
+  cargo?: string;
+  departamento?: string;
+  unidad?: string;
+  area?: string;
 }
 
 // Interfaz para el objeto que se envía al crear/actualizar un usuario
 export interface UserPayload {
-  // Excluimos 'id' ya que el backend lo genera
-  codigoEmpleado: string;
-  nombreCompleto: string;
-  dni: string;
+  // Requeridos por el backend
   email: string;
-  password?: string;
+  password: string;
   role: UserRole;
-  cargo: string;
-  departamento: string;
-  unidad: string;
-  area: string;
+  nombreCompleto: string;
+  
+  // Opcionales
+  codigoEmpleado?: string;
+  dni?: string;
+  cargo?: string;
+  departamento?: string;
+  unidad?: string;
+  area?: string;
 }

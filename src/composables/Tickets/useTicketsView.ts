@@ -103,7 +103,7 @@ export function useTicketsView() {
     }, { deep: true });
 
     const priorityOptions: PrioridadTicket[] = ['BAJA', 'MEDIA', 'ALTA', 'URGENTE'];
-    const statusOptions: EstadoTicket[] = ['PENDIENTE', 'EN_PROGRESO', 'RESUELTO', 'CERRADO'];
+    const statusOptions: EstadoTicket[] = ['PENDIENTE', 'EN_PROCESO', 'RESUELTO', 'CERRADO'];
 
     return {
         tickets,

@@ -1,15 +1,29 @@
 // src/types/Ticket.ts
 
 // Tipos auxiliares para los datos enriquecidos
-interface BasicAssetInfo {
+export interface BasicAssetInfo {
   id: number;
-  // Añade otros campos que envíe el backend, como 'nombre' o 'codigoPatrimonial'
   nombre?: string;
+  tipoEquipo?: string;
+  marca?: string;
+  modelo?: string;
+  codigoPatrimonial?: string;
+  ip?: string;
 }
 
-interface BasicComponentInfo {
+export interface BasicComponentInfo {
   id: number;
   nombreComponente?: string;
+  codigoPatrimonial?: string;
+}
+
+// Tipo para respuesta de equipos filtrados
+export interface EquipoResponseDTO {
+  id: number;
+  codigoPatrimonial: string;
+  marca: string;
+  modelo: string;
+  ip?: string;
 }
 
 // Tipos literales
@@ -29,6 +43,7 @@ export interface Ticket {
   // IDs
   usuarioReportaId: number;
   usuarioAsignadoId: number | null;
+  tecnicoAsignadoId?: number | null;
   equipoAfectadoId: number | null;
   componenteId: number | null;
 
@@ -42,6 +57,35 @@ export interface Ticket {
 }
 
 // Payloads para crear y actualizar
-export interface TicketPayload { /* ... sin cambios ... */ }
-export interface TicketUpdatePayload { /* ... sin cambios ... */ }
-export interface TicketFilters { /* ... sin cambios ... */ }
+export interface TicketPayload {
+  asunto: string;
+  descripcion: string;
+  estado: EstadoTicket;
+  prioridad: PrioridadTicket;
+  usuarioReportaId: number;
+  usuarioAsignadoId?: number | null;
+  tecnicoAsignadoId?: number | null;
+  equipoAfectadoId?: number | null;
+  componenteId?: number | null;
+  diagnostico?: string;
+}
+
+export interface TicketUpdatePayload {
+  asunto?: string;
+  descripcion?: string;
+  estado?: EstadoTicket;
+  prioridad?: PrioridadTicket;
+  usuarioReportaId?: number;
+  usuarioAsignadoId?: number | null;
+  tecnicoAsignadoId?: number | null;
+  equipoAfectadoId?: number | null;
+  componenteId?: number | null;
+  diagnostico?: string;
+}
+
+export interface TicketFilters {
+  search?: string;
+  estado?: EstadoTicket;
+  prioridad?: PrioridadTicket;
+  usuarioReportaId?: number;
+}

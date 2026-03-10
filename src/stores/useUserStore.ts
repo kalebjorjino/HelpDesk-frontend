@@ -45,7 +45,7 @@ export const useUserStore = defineStore('user', () => {
 
     async function createUser(payload: UserPayload): Promise<User> {
         try {
-            const response = await apiClient.post<User>('/auth/register', payload);
+            const response = await apiClient.post<User>('/usuarios', payload);
             users.value.push(response.data);
             return response.data;
         } catch (err: any) {

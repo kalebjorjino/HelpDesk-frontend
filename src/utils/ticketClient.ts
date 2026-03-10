@@ -3,7 +3,7 @@ import axios, { type AxiosInstance, type AxiosError } from 'axios';
 import router from '@/router';
 
 // URL del Microservicio de Tickets
-const TICKET_API_URL = 'http://10.2.1.203:8080/api/';
+const TICKET_API_URL = import.meta.env.VITE_API_BASE_URL || '/api/';
 
 const ticketClient: AxiosInstance = axios.create({
   baseURL: TICKET_API_URL,

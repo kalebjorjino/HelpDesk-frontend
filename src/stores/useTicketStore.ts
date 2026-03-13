@@ -114,6 +114,17 @@ export const useTicketStore = defineStore('ticket', () => {
     }
   }
 
+
+  async function fetchTicketsByAssetId(assetId: number) {
+    const response = await apiClient.get(`/tickets/equipo/${assetId}/historial`);
+    return response.data;
+  }
+
+  async function fetchTicketCountsByAsset() {
+    const response = await apiClient.get<Record<number, number>>('/tickets/estadisticas/conteo-por-equipo');
+    return response.data; 
+  }
+
   return {
     tickets,
     loading,
@@ -125,6 +136,8 @@ export const useTicketStore = defineStore('ticket', () => {
     fetchTicketById,
     updateTicket,
     fetchEquiposByUsuarioId,
-    deleteTicket, // <-- EXPORTAR
+    deleteTicket,
+    fetchTicketsByAssetId,
+    fetchTicketCountsByAsset,
   };
 });

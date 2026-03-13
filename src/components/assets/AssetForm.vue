@@ -21,6 +21,14 @@ defineProps({
 // Two-way binding for the asset data
 const model = defineModel<Partial<Asset>>({ required: true });
 
+
+const estadoOptions = [
+  { title: 'Bueno', value: 'BUENO' },
+  { title: 'Regular', value: 'REGULAR' },
+  { title: 'Malo', value: 'MALO' },
+  { title: 'Baja Patrimonial', value: 'BAJA_PATRIMONIAL' },
+];
+
 </script>
 
 <template>
@@ -30,7 +38,19 @@ const model = defineModel<Partial<Asset>>({ required: true });
       <v-text-field v-model="model.marca" label="Marca" variant="outlined" class="mb-3" />
       <v-text-field v-model="model.modelo" label="Modelo" variant="outlined" class="mb-3" />
       <v-text-field v-model="model.ip" label="Dirección IP" variant="outlined" class="mb-3" />
+
+    <v-select
+        v-model="model.estado"
+        :items="estadoOptions"
+        item-title="title"
+        item-value="value"
+        label="Condición / Estado"
+        variant="outlined"
+        class="mb-3"
+        hide-details="auto"
+      ></v-select>
     </v-col>
+
     <v-col cols="12" sm="6">
       <v-text-field v-model="model.serie" label="Número de Serie" variant="outlined" class="mb-3" />
       <v-text-field v-model="model.departamento" label="Departamento" variant="outlined" class="mb-3" />

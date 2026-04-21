@@ -29,6 +29,16 @@ const isLocked = computed(() => {
   return props.isEditMode && (model.value.estado === 'RESUELTO' || model.value.estado === 'CERRADO');
 });
 
+// Computed property to determine if the technician can edit fields
+const canTechnicianEdit = computed(() => {
+    // Technician can only edit tickets assigned to them
+    if (authStore.isTechnician) {
+        return model.value.tecnicoAsignadoId === authStore.userId;
+    }
+    return true; // Admin and others can edit
+});
+
+
 const rules = {
   required: (value: any) => !!value || 'Este campo es requerido.',
 };
@@ -39,7 +49,12 @@ const rules = {
     <v-row>
       <v-col cols="12" md="6">
         <v-alert v-if="isLocked" type="info" variant="tonal" density="compact" class="mb-4">
-          Este ticket está {{ model.estado }} y no puede ser modificado.
+          Este ticket está {{ model.estado }}.
+          <span v-if="authStore.isAdmin">Puede cambiar el estado para reabrirlo.</span>
+          <span v-else>No puede ser modificado.</span>
+        </v-alert>
+         <v-alert v-if="!canTechnicianEdit && isEditMode && authStore.isTechnician" type="warning" variant="tonal" density="compact" class="mb-4">
+          No tienes permisos para editar este ticket porque no está asignado a ti.
         </v-alert>
 
         <v-text-field
@@ -48,7 +63,7 @@ const rules = {
           variant="outlined"
           :rules="[rules.required]"
           class="mb-3"
-          :readonly="isLocked || (isEditMode && authStore.isClient)"
+          :readonly="isLocked || (isEditMode && authStore.isClient) || (isEditMode && authStore.isTechnician)"
         />
         <v-textarea
           v-model="model.descripcion"
@@ -57,7 +72,19 @@ const rules = {
           :rules="[rules.required]"
           rows="8"
           class="mb-3"
-          :readonly="isLocked || (isEditMode && authStore.isClient)"
+          :readonly="isLocked || (isEditMode && authStore.isClient) || (isEditMode && authStore.isTechnician)"
+        />
+
+        <!-- CAMPO DE DIAGNÓSTICO PARA TÉCNICOS -->
+        <v-textarea
+          v-if="isEditMode && authStore.isAgentOrAdmin"
+          v-model="model.diagnostico"
+          label="Diagnóstico / Notas de Resolución"
+          variant="outlined"
+          rows="5"
+          class="mb-3 bg-grey-lighten-5"
+          :readonly="(isLocked && !authStore.isAdmin) || (authStore.isTechnician && !canTechnicianEdit)"
+          placeholder="Describa el diagnóstico y las acciones tomadas para resolver el ticket."
         />
       </v-col>
 
@@ -69,10 +96,11 @@ const rules = {
           variant="outlined"
           :rules="[rules.required]"
           class="mb-3"
-          :readonly="isLocked || (isEditMode && authStore.isClient)"
+          :readonly="isLocked || (isEditMode && authStore.isClient) || (isEditMode && authStore.isTechnician)"
         />
 
         <template v-if="isEditMode && authStore.isAgentOrAdmin">
+          <!-- Estado: Admin puede editar incluso si está locked (para reabrir) -->
           <v-select
             v-model="model.estado"
             :items="props.statusOptions"
@@ -80,8 +108,9 @@ const rules = {
             variant="outlined"
             :rules="[rules.required]"
             class="mb-3"
-            :readonly="isLocked"
+            :readonly="(isLocked && !authStore.isAdmin) || (authStore.isTechnician && !canTechnicianEdit)"
           />
+          <!-- Asignación: Admin siempre puede editar si no está locked (o si cambia estado). Técnico nunca. -->
           <v-autocomplete
             v-model="model.tecnicoAsignadoId"
             :items="props.agentUserOptions"
@@ -92,7 +121,7 @@ const rules = {
             clearable
             class="mb-3"
             :loading="props.isLoadingUsers"
-            :readonly="isLocked"
+            :readonly="isLocked || authStore.isTechnician"
           />
         </template>
 
@@ -123,7 +152,7 @@ const rules = {
           clearable
           class="mb-3"
           :loading="props.isLoadingFilteredEquipos"
-          :readonly="isLocked || (!isEditMode && !model.usuarioReportaId)"
+          :readonly="isLocked || (!isEditMode && !model.usuarioReportaId) || (isEditMode && authStore.isTechnician)"
           no-data-text="Seleccione un usuario para ver sus equipos"
         ></v-autocomplete>
 
@@ -138,7 +167,7 @@ const rules = {
           clearable
           class="mb-3"
           :loading="props.isLoadingDevices"
-          :readonly="isLocked"
+          :readonly="isLocked || (authStore.isTechnician)"
         />
       </v-col>
     </v-row>

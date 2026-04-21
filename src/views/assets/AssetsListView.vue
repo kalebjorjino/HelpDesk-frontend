@@ -4,14 +4,17 @@ import { useAssetsView } from '@/composables/Assets/useAssetsView';
 import { useUserOptions } from '@/composables/Users/useUserOptions';
 import { useDeviceOptions } from '@/composables/Devices/useDeviceOptions';
 import { useExcelExport } from '@/composables/useExcelExport';
+import { useAuthStore } from '@/stores/useAuthStore'; // <-- Importar authStore
 import AssetFormModal from '@/components/assets/AssetFormModal.vue';
 import AssetFilters from '@/components/assets/AssetFilters.vue';
 import AssetHistory from '@/components/assets/AssetHistory.vue';
 
+const authStore = useAuthStore(); // <-- Usar authStore
+
 // --- LÓGICA DE GARANTÍA ---
 const getGarantiaStatus = (fechaFin: string | undefined) => {
   if (!fechaFin) return { text: 'Sin Info', color: 'grey-lighten-1', icon: 'mdi-help-circle' };
-  
+
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0); // Comparar solo fechas
   const fin = new Date(fechaFin);
@@ -170,8 +173,11 @@ const handleExport = () => {
         <!-- ACCIONES -->
         <template v-slot:item.actions="{ item }">
           <div class="d-flex justify-center">
-            <!-- Botón de Historial -->
-            <v-btn icon size="small" color="info" class="mr-2" @click="openHistory(item)">
+            <!-- Botón de Historial VISIBLE PARA TECHNICIAN Y ADMIN -->
+            <v-btn
+              v-if="authStore.isAgentOrAdmin"
+              icon size="small" color="info" class="mr-2" @click="openHistory(item)"
+            >
               <v-icon>mdi-history</v-icon>
               <v-tooltip activator="parent" location="top">Ver Historial</v-tooltip>
             </v-btn>
@@ -206,9 +212,9 @@ const handleExport = () => {
 
     <!-- NUEVO Diálogo de Historial -->
     <v-dialog v-model="historyDialog" max-width="700px">
-      <AssetHistory 
+      <AssetHistory
         v-if="selectedAssetId"
-        :asset-id="selectedAssetId" 
+        :asset-id="selectedAssetId"
         @close="historyDialog = false"
       />
     </v-dialog>

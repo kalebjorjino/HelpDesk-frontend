@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import TicketForm from './TicketForm.vue';
 import type { Ticket } from '@/types/Ticket';
 import type { PropType } from 'vue';
+import { useAuthStore } from '@/stores/useAuthStore';
+
+const authStore = useAuthStore();
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -22,20 +25,34 @@ const props = defineProps({
 });
 
 const dialog = defineModel<boolean>('dialog', { required: true });
-const ticketData = defineModel<Partial<Ticket>>('ticketData', { required: true });
+const ticketData = defineModel<Partial<Ticket & { tecnicoAsignadoId?: number | null }>>('ticketData', { required: true });
 
 const emit = defineEmits(['submit', 'cancel']);
-const ticketFormRef = ref<any>(null); // Referencia al componente hijo
+const ticketFormRef = ref<any>(null);
+
+// Computed property to check if the technician can edit
+const canTechnicianEdit = computed(() => {
+    // Si es tecnico y esta en modo edicion, SOLO si es SU ticket.
+    if (props.isEditMode && authStore.isTechnician) {
+        return ticketData.value.tecnicoAsignadoId === authStore.userId;
+    }
+    return true; // Admin and others can edit/view
+});
+
+const canSave = computed(() => {
+  if (authStore.isAdmin) return true; // Admin siempre puede guardar (incluso para reasignar o cambiar estado)
+  if (props.isLocked) return false; // Si esta bloqueado y no es admin, nadie guarda
+  return canTechnicianEdit.value; // Tecnico solo si es suyo
+});
+
 
 const handleSubmit = async () => {
-  // Acceder al formulario dentro del componente hijo y validarlo
   if (ticketFormRef.value && ticketFormRef.value.form) {
     const { valid } = await ticketFormRef.value.form.validate();
     if (valid) {
       emit('submit');
     }
   } else {
-    // Fallback si no se puede acceder al formulario (no debería pasar)
     emit('submit');
   }
 };
@@ -47,7 +64,6 @@ const handleSubmit = async () => {
     <v-card>
       <v-card-title class="text-h5 bg-primary text-white">{{ title }}</v-card-title>
       <v-card-text class="pt-4">
-        <!-- Asignar ref al componente -->
         <TicketForm
           ref="ticketFormRef"
           v-model="ticketData"
@@ -67,8 +83,9 @@ const handleSubmit = async () => {
       <v-card-actions class="pa-4 pt-0">
         <v-spacer></v-spacer>
         <v-btn color="grey-darken-1" variant="text" @click="emit('cancel')">Cancelar</v-btn>
-        <v-btn v-if="!props.isLocked" color="primary" variant="flat" @click="handleSubmit" :loading="isSubmitting">Guardar</v-btn>
+        <v-btn v-if="canSave" color="primary" variant="flat" @click="handleSubmit" :loading="isSubmitting">Guardar</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
+

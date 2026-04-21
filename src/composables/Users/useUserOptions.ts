@@ -12,6 +12,8 @@ export function useUserOptions() {
     const { users, loading: isLoadingUsers, error: usersError } = storeToRefs(userStore);
 
     const fetchUsers = () => {
+        // CORRECCION: Siempre intentar cargar si no hay usuarios O si no hay agentes en la lista cargada
+        // Esto asegura que si se cargo la lista parcial en otro lado, aqui se refresque o se complete
         if (users.value.length === 0) {
             userStore.fetchUsers();
         }
@@ -50,7 +52,7 @@ export function useUserOptions() {
     return {
         isLoadingUsers,
         usersError,
-        fetchUsers,
+        fetchUsers, // <-- Exportamos la funcion por si se necesita llamar manualmente
         allUserOptions,
         clientUserOptions,   // <-- Lista para reportar
         agentUserOptions,    // <-- Lista para asignar

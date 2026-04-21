@@ -73,9 +73,9 @@ watch(dialog, (newValue) => {
               <v-text-field v-model="assetData.serie" label="Número de Serie" variant="outlined" :rules="[rules.required]" class="mb-3"></v-text-field>
               <v-text-field v-model="assetData.marca" label="Marca" variant="outlined" :rules="[rules.required]" class="mb-3"></v-text-field>
               <v-text-field v-model="assetData.modelo" label="Modelo" variant="outlined" :rules="[rules.required]" class="mb-3"></v-text-field>
-              <v-text-field v-model="assetData.disco" label="Disco" variant="outlined" :rules="[rules.required]" class="mb-3"></v-text-field>
-              <v-text-field v-model="assetData.memoria" label="Memoria" variant="outlined" :rules="[rules.required]" class="mb-3"></v-text-field>
-              <v-text-field v-model="assetData.procesador" label="Procesador" variant="outlined" :rules="[rules.required]" class="mb-3"></v-text-field>
+              <v-text-field v-model="assetData.disco" label="Disco" variant="outlined"  class="mb-3"></v-text-field>
+              <v-text-field v-model="assetData.memoria" label="Memoria" variant="outlined"  class="mb-3"></v-text-field>
+              <v-text-field v-model="assetData.procesador" label="Procesador" variant="outlined"  class="mb-3"></v-text-field>
               
               <!-- NUEVO CAMPO DE ESTADO -->
               <v-select

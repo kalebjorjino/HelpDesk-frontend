@@ -21,6 +21,9 @@ import AssetDetailsView from '../views/assets/AssetDetailsView.vue';
 // Vistas de Dispositivos (Devices)
 import DevicesListView from '../views/devices/DevicesListView.vue';
 
+// --- NUEVA VISTA DE REPORTE ---
+import AreaReportView from '../views/reports/AreaReportView.vue';
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -95,6 +98,14 @@ const router = createRouter({
       name: 'devices-list',
       component: DevicesListView,
       meta: { requiresAuth: true, roles: ['ADMIN', 'TECHNICIAN'] }
+    },
+
+    // --- NUEVA RUTA DE REPORTE ---
+    {
+      path: '/reports/area-report',
+      name: 'area-report',
+      component: AreaReportView,
+      meta: { requiresAuth: true, roles: ['ADMIN'] } // Por ahora solo Admin, se puede expandir
     },
   ]
 });

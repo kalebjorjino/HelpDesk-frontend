@@ -30,8 +30,21 @@ const {
   isLoadingFilteredEquipos
 } = useTicketForm(refreshTickets);
 
-const { clientUserOptions, agentUserOptions, isLoadingUsers } = useUserOptions();
+// CORRECCION: Desestructurar fetchUsers para asegurar la carga
+const { clientUserOptions, agentUserOptions, isLoadingUsers, fetchUsers } = useUserOptions();
 const { deviceSelectOptions, isLoadingDevices } = useDeviceOptions();
+
+// CORRECCION: Asegurar que se carguen los usuarios al abrir el modal (o siempre)
+const handleOpenCreateForm = () => {
+  fetchUsers();
+  openCreateForm();
+};
+
+const handleOpenEditForm = async (id: number) => {
+  fetchUsers(); // Asegurar que tenemos la lista de agentes para mostrar el asignado
+  await openEditForm(id);
+};
+
 
 const modalTitle = computed(() => {
   if (!isEditMode.value) return 'Crear Nuevo Ticket';
@@ -67,7 +80,8 @@ const handleExport = () => {
         <div>
           <!-- BOTÓN DE EXPORTAR -->
           <v-btn color="success" prepend-icon="mdi-microsoft-excel" class="mr-2" @click="handleExport">Exportar</v-btn>
-          <v-btn color="primary" prepend-icon="mdi-plus" @click="openCreateForm">Nuevo Ticket</v-btn>
+          <!-- CORRECCION: Usar el nuevo handler -->
+          <v-btn color="primary" prepend-icon="mdi-plus" @click="handleOpenCreateForm">Nuevo Ticket</v-btn>
         </div>
       </v-card-title>
 
@@ -89,7 +103,7 @@ const handleExport = () => {
         :headers="headers"
         :tickets="tickets"
         :is-loading="isLoading"
-        @view-details="openEditForm"
+        @view-details="handleOpenEditForm"
         @delete="deleteTicket"
       />
     </v-card>
